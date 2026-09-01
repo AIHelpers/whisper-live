@@ -9,7 +9,7 @@
 # this image and run with -transcriber=whispercpp for in-container
 # inference without a docker-in-docker dependency.
 
-FROM golang:1.23-bookworm AS build
+FROM golang:1.26-bookworm AS build
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
