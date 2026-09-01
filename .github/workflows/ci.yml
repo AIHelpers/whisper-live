@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+      - name: Vet
+        run: go vet ./...
+      - name: Unit + integration tests (race)
+        run: go test ./... -race -v
+      - name: Build all binaries
+        run: |
+          go build ./cmd/server
+          go build ./cmd/cli
+      # Wails desktop build validated separately (requires the Wails CLI
+      # and platform-specific webview toolchains not present on bare
+      # setup-go runners); see docs/desktop-build.md.
+
+  load-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+      - name: Concurrent WebSocket session soak test
+        run: go test ./internal/adapter/ws/... -race -run TestLoad -v -timeout 120s

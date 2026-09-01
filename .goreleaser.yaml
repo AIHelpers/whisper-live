@@ -1,0 +1,56 @@
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: whisperlive-server
+    main: ./cmd/server
+    binary: whisperlive-server
+    env:
+      - CGO_ENABLED=0
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}}
+
+  - id: whisperlive-cli
+    main: ./cmd/cli
+    binary: whisperlive
+    env:
+      - CGO_ENABLED=0
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}}
+
+archives:
+  - id: default
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: >-
+      {{ .ProjectName }}_{{ .Os }}_{{ .Arch }}
+    files:
+      - README.md
+      - LICENSE*
+      - frontend/web/**
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^test:"
+      - "^ci:"
+
+release:
+  github:
+    owner: AIHelpers
+    name: whisper-live
+  draft: false
+  prerelease: auto
